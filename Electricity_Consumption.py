@@ -23,5 +23,14 @@ df.plot(grid = 'on', x = 'DATE', y = 'IPG2211A2N')
 plt.show()
 
 # Start and end dates. 
-start_date = datetime(1985, 1, 1)
-end_time = datetime(2018, 1, 1)
+start_date = datetime(2009, 1, 1)
+end_date = datetime(2010, 12, 1)
+
+df[(start_date <= df.index) & (df.index <= end_date)].plot(grid = 'on', x = 'DATE', y = 'Energy Production')
+plt.show()
+
+# Remove the seasonality.
+
+decomposition = sm.tsa.seasonal_decompose(df, model = "additive")
+decomposition.plot(grid = 'on', x = 'DATE', y = 'Energy Production')
+plt.show()
