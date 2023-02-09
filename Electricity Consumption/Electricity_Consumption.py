@@ -1,5 +1,4 @@
-import statsmodels.formula.api as smf
-import statsmodels.api as sma
+import statsmodels.api as sm
 import matplotlib.pyplot as plt
 import pandas as pd
 from datetime import datetime
@@ -13,24 +12,38 @@ print(df.head())
 print(df.tail())
 print(df.dtypes)
 
-
 # Change the date to date time objects.
 df['DATE'] = pd.to_datetime(df['DATE'])
-df = df.set_index(df['DATE'])
+
+print(df['DATE'].head())
+print(df['DATE'].dt.year.head())
+
+df = df.set_index('DATE')
+print(df.dtypes)
 
 # Plotting the data.
-df.plot(grid = 'on', x = 'DATE', y = 'IPG2211A2N')
+df.plot(grid = 'on')
 plt.show()
 
 # Start and end dates. 
-start_date = datetime(2009, 1, 1)
+start_date = datetime(2009, 1, 1)0
 end_date = datetime(2010, 12, 1)
 
-df[(start_date <= df.index) & (df.index <= end_date)].plot(grid = 'on', x = 'DATE', y = 'Energy Production')
+# Look for seasonality and/or trend.
+df[(start_date <= df.index) & (df.index <= end_date)].plot(grid = 'on')
 plt.show()
 
-# Remove the seasonality.
-
+# Look at seasonality/trend.
 decomposition = sm.tsa.seasonal_decompose(df, model = "additive")
-decomposition.plot(grid = 'on', x = 'DATE', y = 'Energy Production')
+decomposition.plot()
+plt.show()
+
+# Remove seasonlity.
+df_adj = df.diff(periods = 12)
+df_adj.plot()
+plt.show()
+
+# Remove trend.
+df_adj2 = df.diff(periods = 1)
+df_adj2.plot()
 plt.show()
