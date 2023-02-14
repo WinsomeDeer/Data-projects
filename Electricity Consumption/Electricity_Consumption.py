@@ -47,3 +47,8 @@ plt.show()
 df_adj2 = df.diff(periods = 1)
 df_adj2.plot()
 plt.show()
+
+plot_acf(df)
+plt.show()
+plot_pacf(df)
+plt.show()
