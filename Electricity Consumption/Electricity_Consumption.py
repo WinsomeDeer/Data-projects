@@ -48,6 +48,9 @@ df_adj2 = df.diff(periods = 1)
 df_adj2.plot()
 plt.show()
 
+fig_cf, ax = plt.subplots(1,2)
+ax[0,0]
+
 plot_acf(df)
 plt.show()
 plot_pacf(df)
