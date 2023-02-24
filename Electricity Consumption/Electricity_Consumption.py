@@ -3,7 +3,7 @@ import statsmodels.formula.api as smf
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.ar_model import AutoReg
-from statsmodels.tsa.arima_model import ARMA
+from statsmodels.tsa.arima.model import ARIMA
 
 from scipy import stats
 import numpy as np
@@ -98,6 +98,15 @@ plt.show()
 """""
 PACF cuts off at lag 6 and ACF cuts off at lag 21 - no real geometric decay.
 
-Possible models -> AR(4), MA(21).
+Possible models -> AR(3), MA(2), ARMA(3,2).
 
 """""
+
+ar_three = AutoReg(train['Seasonal Difference'].dropna(), lags = 3).fit()
+print(ar_three.summary())
+
+ma_two = ARIMA(train['Seasonal Difference'].dropna(), order = (0,0,2)).fit()
+print(ma_two.summary())
+
+arma_three_two = ARIMA(train['Seasonal Difference'].dropna(), order = (3,0,2)).fit()
+print(arma_three_two.summary())
