@@ -92,7 +92,7 @@ adfuller_test(train["Seasonal Difference"].dropna())
 # Correlation plots.
 fig, ax = plt.subplots(1,2,figsize=(10,5))
 plot_acf(train['Seasonal Difference'].dropna(), ax = ax[0], lags = 36)
-plot_pacf(train['Seasonal Difference'].dropna(), ax = ax[1], lags = 36)
+plot_pacf(train['Seasonal Difference'].dropna(), ax = ax[1], lags = 36, method = 'ywm')
 plt.show()
 
 """""
@@ -101,11 +101,3 @@ PACF cuts off at lag 6 and ACF cuts off at lag 21 - no real geometric decay.
 Possible models -> AR(4), MA(21).
 
 """""
-
-# AR(4).
-ar_six = AutoReg(train, lags = 6).fit()
-print(ar_six.summary())
-
-# MA(21).
-ma_twenty_one = ARMA(train, order = (0, 21)).fit()
-print(ma_twenty_one.summary())
