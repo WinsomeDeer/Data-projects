@@ -50,6 +50,7 @@ ax[1].plot(x, p, color = 'orange', label = 'norm pdf')
 ax[1].legend(loc = 'best')
 plt.show()
 
+
 # Box-Cox tranformation test.
 transformed, lam = stats.boxcox(train['Energy Production'].values)
 print("Lambda value: %f" % lam)
@@ -105,8 +106,22 @@ Possible models -> AR(3), MA(2), ARMA(3,2).
 ar_three = AutoReg(train['Seasonal Difference'].dropna(), lags = 3).fit()
 print(ar_three.summary())
 
-ma_two = ARIMA(train['Seasonal Difference'].dropna(), order = (0,0,2)).fit()
-print(ma_two.summary())
+ma_one = ARIMA(train['Seasonal Difference'].dropna(), order = (0,0,1)).fit()
+print(ma_one.summary())
 
-arma_three_two = ARIMA(train['Seasonal Difference'].dropna(), order = (3,0,2)).fit()
-print(arma_three_two.summary())
+arma_three_one = ARIMA(train['Seasonal Difference'].dropna(), order = (3,0,1)).fit()
+print(arma_three_one.summary())
+
+# Choose the AR(3). Calculate the MAPE.
+ar_three_fit = AutoReg(test['Energy Production'], lags = 3).fit()
+def MAPE_Calc(model_fit, test_set):
+    output = model_fit.forecast()
+    pred = []
+    for i in range(len(test_set)):
+
+
+
+plt.plot(train['Seasonal Difference'], color = 'black')
+
+plt.ylabel('Energy Production')
+plt.xlabel('Date')
