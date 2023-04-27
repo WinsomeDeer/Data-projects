@@ -1,3 +1,4 @@
+
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.stats.diagnostic import acorr_ljungbox
 from statsmodels.tsa.statespace.sarimax import SARIMAX
@@ -21,7 +22,6 @@ fig, ax = plt.subplots()
 ax.plot(df.time, df.value)
 ax.set_xlabel('Year')
 ax.set_ylabel('Earnings per share (USD)')
-plt.xticks(np.arange(0, 81, 8), [1960, 1962, 1964, 1966, 1968, 1970, 1972, 1974, 1976, 1978, 1980])
 
 # Adickey fuller test function.
 def adfuller_test(data):
@@ -47,18 +47,32 @@ adfuller_test(diff_data)
 
 def optimize_ARIMA(endog: Union[pd.Series, list], order_list: list, d: int):
     
-    res= []
+    res = []
 
-    for order in tqdm_notebook(order_list):
+    for order in order_list:
         try:
-            model = SARIMAX(endog, order=(order[0], d, order[1]), simple_differencing = False).fit(disp = False)
+            model = SARIMAX(endog, order = (order[0], d, order[1]), simple_differencing = False).fit(disp = False)
         except:
             continue
         aic = model.aic
         res.append([order, aic])
     res_df = pd.DataFrame(res)
-    res_df.columns(['(p, q)', 'AIC'])
+    res_df.columns = ['(p, q)', 'AIC']
     
     res_df = res_df.sort_values(by = 'AIC', ascending = True).reset_index(drop = True)
 
     return res_df
+
+p = range(0, 4, 1)
+q = range(0, 4, 1)
+list_of_combos = list(product(p, q))
+train_data = df['value'][:-4]
+
+res_df = optimize_ARIMA(train_data, list_of_combos, 2)
+print(res_df.head())
+
+# Best model is fou8nd to be the ARIMA(3,2,3).
+model = SARIMAX(train_data, order = (3,2,3), simple_differencing = False)
+model_fit = model.fit(disp = False)
+model_fit.plot_diagnostics(figsize = (10, 8))
+plt.show()
