@@ -4,7 +4,6 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 from statsmodels.tsa.arima_process import ArmaProcess
 from statsmodels.graphics.gofplots import qqplot
 from statsmodels.tsa.stattools import adfuller
-from tqdm import tqdm_notebook
 from itertools import product
 from typing import Union
 import matplotlib.pyplot as plt
