@@ -3,7 +3,9 @@ import statsmodels.formula.api as smf
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.ar_model import AutoReg
-from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.statespace.sarimax import SARIMAX
+from itertools import product
+from typing import Union
 from scipy import stats
 import numpy as np
 import seaborn as sns
@@ -46,4 +48,32 @@ plt.show()
 
 # Plots indicate skewness - need to apply a transformation, first use Box-Cox test.
 
-df_fitted, lambda = stats.boxcox(df['price'])
+fitted_data, fitted_lambda = stats.boxcox(df['price'])
+print('Value of lambda is: ' + str(fitted_lambda))
+df['price'] = fitted_data
+
+fig, ax = plt.subplots(1,2)
+sns.boxplot(df['price'], ax = ax[0])
+sns.histplot(df['price'], ax = ax[1])
+plt.show()
+
+# Data more even distributed now, find the best SARIMA model.
+
+def optimize_ARIMA(endog: Union[pd.Series, list], order_list: list, d: int):
+    
+    res = []
+
+    for order in order_list:
+        try:
+            model = SARIMAX(endog, order = (order[0], d, order[1]), simple_differencing = False).fit(disp = False)
+        except:
+            continue
+        aic = model.aic
+        res.append([order, aic])
+    res_df = pd.DataFrame(res)
+    res_df.columns = ['(p, q)', 'AIC']
+    
+    res_df = res_df.sort_values(by = 'AIC', ascending = True).reset_index(drop = True)
+
+    return res_df
+
