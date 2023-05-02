@@ -12,10 +12,17 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 from datetime import datetime
+
 # Read the data into pd dataframe. 
 df  = pd.read_csv(r'C:\Users\patri\Desktop\Python\Data\raw_sales.csv')
 # Change the dtype of datesold.
 df.index = pd.to_datetime(df.datesold)
+print(df.head())
+
+# Resample the data to regularize the data.
+df_resample = df.resample('M').mean()
+print(df_resample.head())
+print(len(df_resample))
 
 # Check for stationarity.
 def adfuller_test(data):
@@ -29,36 +36,34 @@ def adfuller_test(data):
         print('Weak evidence against null hypothesis, time series has a unit root. Data is non-stationary.')
 
 # Check for price.
-adfuller_test(df['price'])
-# Check for bedrooms.
-adfuller_test(df['bedrooms'])
+adfuller_test(df_resample['price'])
+
+df_resample_diff = np.diff(df_resample['price'], n = 1)
+adfuller_test(df_resample_diff)
 
 # Plot the data.
 fig, ax = plt.subplots(figsize = (20,5))
-ax.plot(df['price'][:300])
+plt.style.use('fivethirtyeight')
+ax.plot(df_resample['price'])
 ax.set_xlabel('Date')
 ax.set_ylabel('House Price (GBP)')
 plt.show()
 
 # Diagnostics of the data.
 fig, ax = plt.subplots(1, 2)
-sns.boxplot(df['price'], ax = ax[0])
-sns.histplot(df['price'], ax = ax[1])
+sns.boxplot(df_resample['price'], ax = ax[0])
+sns.histplot(df_resample['price'], ax = ax[1])
 plt.show()
 
-# Plots indicate skewness - need to apply a transformation, first use Box-Cox test.
-
-fitted_data, fitted_lambda = stats.boxcox(df['price'])
-print('Value of lambda is: ' + str(fitted_lambda))
-df['price'] = fitted_data
-
+# No signs of skewness - no transform needed.
 fig, ax = plt.subplots(1,2)
-sns.boxplot(df['price'], ax = ax[0])
-sns.histplot(df['price'], ax = ax[1])
+sns.boxplot(df_resample['price'], ax = ax[0])
+sns.histplot(df_resample['price'], ax = ax[1])
 plt.show()
 
-# Data more even distributed now, find the best SARIMA model.
+# Data more even distributed now, find the best Time Series model.
 
+# Function to iterate through the best possible models.
 def optimize_ARIMA(endog: Union[pd.Series, list], order_list: list, d: int):
     
     res = []
@@ -77,3 +82,29 @@ def optimize_ARIMA(endog: Union[pd.Series, list], order_list: list, d: int):
 
     return res_df
 
+# Possible values for p & q.
+p = range(0, 4, 1)
+q = range(0, 4, 1)
+d = 1
+p_q_pairs = list(product(p, q))
+
+model_df = optimize_ARIMA(df_resample['price'][:110], p_q_pairs, 1)
+
+print(model_df.head())
+
+# Best model for forecasting is the AR(1) (with differenced data).
+best_model = SARIMAX(df_resample['price'], order = (1, 1, 0))
+AR_one = best_model.fit()
+print(AR_one.summary())
+
+AR_one.plot_diagnostics()
+plt.show()
+
+df_resample['price predict'] = AR_one.predict(start = 110, end = 150)
+
+fig, ax = plt.subplots(figsize = (20,5))
+ax.plot(df_resample['price'])
+ax.plot(df_resample['price predict'])
+ax.set_xlabel('Date')
+ax.set_ylabel('House Price (GBP)')
+plt.show()
