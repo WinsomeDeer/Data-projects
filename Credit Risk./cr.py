@@ -6,7 +6,7 @@ import seaborn as sns
 
 # Load the data.
 df  = pd.read_csv(r'C:\Users\patri\Desktop\Python\Data\credit_risk_dataset.csv')
-print(df.head())
+print(df.describe())
 
 # Check the data for NaN values.
 print(df.isnull().sum())
@@ -22,3 +22,13 @@ sns.histplot(df['loan_int_rate'], ax = ax[1])
 plt.show()
 
 # Data is right skewed - so need to replace the NaNs with median.
+df['person_emp_length'].fillna(df['person_emp_length'].median(), inplace = True)
+df['loan_int_rate'].fillna(df['loan_int_rate'].median(), inplace = True)
+
+# Clearly some outliers regarding employment length and age.
+clean_df = df[df['person_age'] <= 100]
+clean_df = clean_df[clean_df['person_emp_length'] <= 50]
+print(clean_df.describe())
+
+# Check for NaNs.
+print(df.isnull().sum())
