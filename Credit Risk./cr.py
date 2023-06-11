@@ -2,12 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
-from sklearn import model_selection,linear_model, metrics
+from sklearn import model_selection
 import seaborn as sns
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import auc, accuracy_score, confusion_matrix, roc_auc_score, classification_report
+from sklearn.metrics import classification_report
 import xgboost as xgb
 import seaborn as sns
 
@@ -88,17 +88,67 @@ def model_testing(model, name = 'model_name'):
     print(name, '\n', classification_report(Y_test, model.predict(X_test)))
 
 # Logisitic regression.
-log_reg = LogisticRegression(random_state = 10)
+log_reg = LogisticRegression(penalty = "l1", solver = "liblinear")
 model_testing(log_reg, 'Logisitic regression')
 
 # Decision tree.
-dec_tree = DecisionTreeClassifier(max_depth = 10, min_samples_split = 2, min_samples_leaf = 1, random_state = 10)
+dec_tree = DecisionTreeClassifier(criterion = 'entropy', max_depth = 10)
 model_testing(dec_tree, 'Decision Tree')
 
+# Function to find the optimum tree depth.
+def decision_tree_depth():
+
+    depths = []
+
+    for i in range(1,15):
+        model = DecisionTreeClassifier(criterion = 'entropy', max_depth = i)
+        model.fit(X_train, Y_train)
+        report = classification_report(Y_test, model.predict(X_test), output_dict=True)
+        accuracy = report['accuracy']
+        depths.append([i, accuracy])
+    
+    depths_df = pd.DataFrame(depths)
+    depths_df.columns = ['Tree depth', 'Accuracy']
+    depths_df = depths_df.sort_values(by = 'Accuracy', ascending = False).reset_index(drop = True)
+    
+    return depths_df
+
+depths_df = decision_tree_depth()
+best_depth = depths_df['Tree depth'].iloc[0]
+print(depths_df)
+
+# Decision tree.
+dec_tree = DecisionTreeClassifier(criterion = 'entropy', max_depth = best_depth)
+model_testing(dec_tree, 'Decision Tree')
+
+# Function to find the optimum 
+def KNN_N():
+
+    best_NN = []
+
+    for i in range(5, 200, 5):
+        model = KNeighborsClassifier(n_neighbors = i)
+        model.fit(X_train, Y_train)
+        report = classification_report(Y_test, model.predict(X_test), output_dict = True)
+        accuracy = report['accuracy']
+        best_NN.append([i, accuracy])
+    
+    best_NN_df = pd.DataFrame(best_NN)
+    best_NN_df.columns = ['N', 'Accuracy']
+    best_NN_df = best_NN_df.sort_values(by = 'Accuracy', ascending = False).reset_index(drop = True)
+    
+    return best_NN_df
+
+best_N_df = KNN_N()
+best_N = best_N_df['N'].iloc[0]
+print(best_N_df)
+
 # KNN model.
-KNN = KNeighborsClassifier(n_neighbors = 150)
+KNN = KNeighborsClassifier(n_neighbors = best_N)
 model_testing(KNN, 'KNN')
 
+
+
 # XGBoost model.
-XGB = xgb.XGBClassifier(objective = "binary:logistic", random_state = 10)
+XGB = xgb.XGBClassifier(objective = "binary:logistic")
 model_testing(XGB, 'XGBoost')
